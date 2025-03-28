@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    name: Build Linux binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt install libssh-dev libjson-c-dev libpcap-dev libssl-dev
+
+      - name: Build application
+        run: make
+
+      - name: Publish binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ssh-honeypot
+          path: bin/ssh-honeypot
