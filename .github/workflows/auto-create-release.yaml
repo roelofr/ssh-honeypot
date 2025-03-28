@@ -1,0 +1,28 @@
+name: Draft release
+
+on:
+  push:
+    tags:
+
+jobs:
+  auto-prep-release:
+    name: Auto prep release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make release if missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view ${{ github.ref_name }} > /dev/null; then
+            echo "Release ${{ github.ref_name }} exists."
+            exit 0
+          fi
+
+          echo "Creating release ${{ github.ref_name }}..."
+          gh release create \
+            --generate-notes \
+            ${{ github.ref_name }}
