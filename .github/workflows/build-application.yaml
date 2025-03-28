@@ -53,6 +53,53 @@ jobs:
         run: |
           gh release upload ${{ github.ref_name }} bin/ssh-honeypot
 
+  build-macos:
+    name: Build MacOS binary
+    runs-on: macos-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: homebrew/actions/setup-homebrew@master
+
+      - name: Install dependencies
+        run: brew install libssh json-c
+
+      - name: Prepare environment
+        run: |
+          echo "CPATH=${CPATH}:$( brew --prefix )/include" >> "$GITHUB_ENV"
+          sudo ln -s $( brew --prefix libssh ) /usr/local/opt/
+          sudo ln -s $( brew --prefix json-c ) /usr/local/opt/
+
+      - name: Build application
+        run: make -f MakefileOSX
+
+      - name: Publish binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ssh-honeypot_macos
+          path: bin/ssh-honeypot
+          if-no-files-found: 'error'
+
+      - name: Rename binary
+        run: mv bin/ssh-honeypot bin/ssh-honeypot-macos
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        if: github.ref_type == 'tag'
+        with:
+          subject-path: bin/ssh-honeypot-macos
+
+      - name: Publish with release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} bin/ssh-honeypot-macos
+
   build-and-push-image:
     name: Build Docker image
     runs-on: ubuntu-latest
