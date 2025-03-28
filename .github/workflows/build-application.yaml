@@ -12,7 +12,9 @@ on:
       - master
 
 permissions:
-  contents: read
+  contents: write
+  attestations: write
+  id-token: write
 
 jobs:
   build-linux:
@@ -34,3 +36,16 @@ jobs:
         with:
           name: ssh-honeypot
           path: bin/ssh-honeypot
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        if: github.ref_type == 'tag'
+        with:
+          subject-path: bin/ssh-honeypot
+
+      - name: Publish with release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} bin/ssh-honeypot
