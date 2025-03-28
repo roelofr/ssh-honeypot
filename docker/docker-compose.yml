@@ -1,4 +1,6 @@
-version: '2'
+networks:
+  default:
+
 services:
   ssh-honeypot:
     image: 'local/ssh-honeypot:latest'
@@ -9,7 +11,7 @@ services:
       - log:/home/honeycomb/log
       - rsa:/home/honeycomb/rsa     
     networks:
-      default: 
+      - default
     restart: unless-stopped
 
 volumes:
@@ -17,6 +19,3 @@ volumes:
     driver: local
   rsa:
     driver: local
-
-networks:
-  default:
