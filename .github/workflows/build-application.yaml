@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-linux:
+    name: Build Linux binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt install libssh-dev libjson-c-dev libpcap-dev libssl-dev
+
+      - name: Build application
+        run: make
+
+      - name: Publish binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ssh-honeypot
+          path: bin/ssh-honeypot
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        if: github.ref_type == 'tag'
+        with:
+          subject-path: bin/ssh-honeypot
+
+      - name: Publish with release
+        if: github.ref_type == 'tag'
+        run: gh release upload ${ github.ref_name } bin/ssh-honeypot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
