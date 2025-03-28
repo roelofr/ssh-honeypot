@@ -3,7 +3,7 @@ networks:
 
 services:
   ssh-honeypot:
-    image: 'local/ssh-honeypot:latest'
+    image: 'ghcr.io/droberson/ssh-honeypot:latest'
     build: .
     ports:
       - '22:2022'
